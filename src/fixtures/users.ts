@@ -10,7 +10,7 @@ const data = [
   },
   {
     username: 'test',
-    password: 'dsjlfkhjkhdsflkdjsh',
+    password: 'unpetittest',
     email: 'test2@test.fr',
   },
   {

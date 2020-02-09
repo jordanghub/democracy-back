@@ -1,8 +1,10 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 
 import bcrypt from 'bcrypt';
+import { User } from 'src/users/user.entity';
+import { UserTokens } from 'src/users/user-tokens';
 
 @Injectable()
 export class AuthService {
@@ -18,14 +20,63 @@ export class AuthService {
     if (user) {
       const passwordMatch = await bcrypt.compare(pass, user.password);
       if (passwordMatch) {
-        return { id: user.id, username: user.username};
+        return user;
       }
     }
     return null;
   }
 
-  async login(user: any) {
+  async login(user: User) {
+
     const payload = { username: user.username, sub: user.id };
+    const refreshToken = this.jwtService.sign({}, { expiresIn: '14d' });
+
+    const userTokenEntity = new UserTokens({
+      userId: user.id,
+      refreshToken,
+    });
+
+    await userTokenEntity.save();
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      refresh_token: refreshToken,
+    };
+  }
+
+  async refresh(refreshToken) {
+    const userToken = await UserTokens.findOne({
+      where: {
+        refreshToken,
+      },
+    });
+
+    if (!userToken) {
+      console.log('Pas de token en db');
+      throw new UnauthorizedException();
+    }
+
+    const isValid = await this.jwtService.verifyAsync(userToken.refreshToken);
+
+    if (!isValid) {
+      console.log('Le token nest pas valide');
+      await userToken.destroy();
+      throw new UnauthorizedException();
+    }
+
+    const user = await User.findOne({
+      where: {
+        id: userToken.userId,
+      },
+    });
+
+    if (!user) {
+      console.log('Pas dutilisateur')
+      throw new UnauthorizedException();
+    }
+
+    const payload = { username: user.username, sub: user.id };
+
     return {
       access_token: this.jwtService.sign(payload),
     };

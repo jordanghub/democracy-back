@@ -4,12 +4,33 @@ import { Message } from 'src/message/message.entity';
 import { Scoring } from 'src/scoring/scoring.entity';
 import sequelize = require('sequelize');
 import { ScoringLabel } from 'src/scoring/scoring-label.entity';
+import { MessageSource } from './message-source.entity';
+import { User } from 'src/users/user.entity';
 
 @Injectable()
 export class MessageService {
   constructor(
     @Inject(MESSAGE_REPOSITORY) private readonly messageRepository: typeof Message,
   ) {}
+
+  findOne(id) {
+    return this.messageRepository.findOne({
+      where: {
+        id,
+      },
+      attributes: ['content', 'id', 'createdAt'],
+      include: [
+        {
+          model: MessageSource,
+          attributes: ['id', 'label', 'url'],
+        },
+        {
+          model: User,
+          attributes: ['id', 'username'],
+        },
+      ],
+    });
+  }
 
   getMyVotes(userId, messageId) {
     // return Scoring.findAll({
@@ -128,7 +149,7 @@ export class MessageService {
           attributes: [],
         },
       ],
-      group: ['scoringCategoryId'],
+      group: ['scoring_category_id'],
 
     });
     // hfjdklfhs

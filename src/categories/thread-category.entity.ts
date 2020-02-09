@@ -3,7 +3,7 @@ import { Category } from 'src/categories/category.entity';
 
 import { BelongsTo, Table, Column, ForeignKey, Model, HasOne } from 'sequelize-typescript';
 
-@Table
+@Table({ underscored: true })
 export class ThreadCategory extends Model {
   @ForeignKey(() => Thread)
   @Column

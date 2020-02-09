@@ -2,11 +2,12 @@ import { Table, Column, Model, ForeignKey, Unique, DataType, BelongsTo, HasMany,
 import { Thread } from 'src/thread/thread.entity';
 import { User } from 'src/users/user.entity';
 import { Scoring } from 'src/scoring/scoring.entity';
+import { MessageSource } from './message-source.entity';
+import { MessageRef } from './message-ref.entity';
 
-@Table
+@Table({ underscored: true })
 export class Message extends Model {
 
-  @Unique
   @Column(DataType.TEXT)
   content: string;
 
@@ -28,4 +29,10 @@ export class Message extends Model {
 
   @HasMany(() => Scoring)
   votes: Scoring[];
+
+  @HasMany(() => MessageSource)
+  sources: MessageSource[];
+
+  @HasMany(() => MessageRef)
+  highlightedItems: MessageRef[];
 }

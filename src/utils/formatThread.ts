@@ -23,7 +23,9 @@ export const formatThreadLatest = (thread: Thread) => {
   if (thread.categories) {
     result.categories = thread.categories.map((threadCat) => threadCat.category);
   }
-
+  if (thread.originalSelection) {
+    result.originalSelection = thread.originalSelection;
+  }
   return result;
 
 };

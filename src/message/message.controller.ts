@@ -12,9 +12,9 @@ export class MessageController {
   constructor(private readonly messageService: MessageService) {}
 
   @Get('/:id/votes/me')
-  //@UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   async getUserVotes(@Param('id') id, @Req() req) {
-    const myVotes = await this.messageService.getMyVotes(2, id);
+    const myVotes = await this.messageService.getMyVotes(req.user.userId, id);
 
     return myVotes;
   }

@@ -7,9 +7,10 @@ import { User } from 'src/users/user.entity';
   indexes: [
     {
       unique: true,
-      fields: ['scoringCategoryId', 'messageId', 'userId'],
+      fields: ['scoring_category_id', 'message_id', 'user_id'],
     },
   ],
+  underscored: true,
 })
 export class Scoring extends Model {
 

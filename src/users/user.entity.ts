@@ -2,7 +2,7 @@ import { Table, Column, Model, ForeignKey, Unique, DataType, HasMany } from 'seq
 import { Thread } from 'src/thread/thread.entity';
 import { Message } from 'src/message/message.entity';
 
-@Table
+@Table({ underscored: true })
 export class User extends Model {
 
   @Unique

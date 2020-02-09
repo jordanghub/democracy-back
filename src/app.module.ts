@@ -8,6 +8,7 @@ import { ThreadModule } from './thread/thread.module';
 import { DatabaseModule } from './database/database.module';
 import { MessageModule } from './message/message.module';
 import { ScoringModule } from './scoring/scoring.module';
+import { WebSocketGatewayServer } from './sockets/gateway';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { ScoringModule } from './scoring/scoring.module';
     ScoringModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, WebSocketGatewayServer],
 })
 export class AppModule {}
