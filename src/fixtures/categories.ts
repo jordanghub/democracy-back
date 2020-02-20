@@ -1,4 +1,4 @@
-import { Category } from 'src/categories/category.entity';
+import { Category } from 'src/categories/models/category.entity';
 
 const data = [
   {
@@ -29,7 +29,7 @@ const data = [
 
 export const createCategory = () => {
   return new Promise(async (resolve, reject) => {
-    for(let catData = 0; catData < data.length; catData++) {
+    for (let catData = 0; catData < data.length; catData++) {
       const user = new Category(data[catData]);
       await user.save();
     }

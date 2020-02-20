@@ -1,4 +1,4 @@
-import { User } from 'src/users/user.entity';
+import { User } from 'src/users/models/user.entity';
 import bcrypt from 'bcrypt';
 import { SALT_ROUNDS } from 'src/appConsts/bcrypt';
 
@@ -52,8 +52,11 @@ const data = [
 
 export const createUsers = () => {
   return new Promise(async (resolve, reject) => {
-    for(let userData = 0; userData < data.length; userData++) {
-      const hashedPassword = await bcrypt.hash(data[userData].password, SALT_ROUNDS);
+    for (let userData = 0; userData < data.length; userData++) {
+      const hashedPassword = await bcrypt.hash(
+        data[userData].password,
+        SALT_ROUNDS,
+      );
       const user = new User({
         ...data[userData],
         password: hashedPassword,

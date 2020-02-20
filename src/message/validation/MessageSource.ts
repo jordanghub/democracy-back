@@ -9,5 +9,4 @@ export class MessageSourceType {
   @IsNotEmpty()
   @IsUrl()
   url: string;
-
 }

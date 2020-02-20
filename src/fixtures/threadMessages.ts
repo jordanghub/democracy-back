@@ -1,9 +1,8 @@
-import { Thread } from "src/thread/thread.entity";
-import { Message } from "src/message/message.entity";
+import { Thread } from 'src/thread/models/thread.entity';
+import { Message } from 'src/message/models/message.entity';
 
 export const fakeThreadResponse = async () => {
-
-  return new Promise(async (resolve) => {
+  return new Promise(async resolve => {
     const threads = await Thread.findAll();
 
     for (let nb = 0; nb < 20; nb++) {

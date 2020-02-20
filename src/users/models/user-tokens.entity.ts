@@ -1,9 +1,15 @@
-import { Table, Column, Model, ForeignKey, Unique, AllowNull } from 'sequelize-typescript';
+import {
+  Table,
+  Column,
+  Model,
+  ForeignKey,
+  Unique,
+  AllowNull,
+} from 'sequelize-typescript';
 import { User } from './user.entity';
 
 @Table({ underscored: true })
 export class UserTokens extends Model {
-
   @AllowNull(false)
   @Unique
   @Column
@@ -13,5 +19,4 @@ export class UserTokens extends Model {
   @ForeignKey(() => User)
   @Column
   userId: string;
-
 }

@@ -1,10 +1,10 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 
 import bcrypt from 'bcrypt';
-import { User } from 'src/users/user.entity';
-import { UserTokens } from 'src/users/user-tokens';
+import { User } from 'src/users/models/user.entity';
+import { UserTokens } from 'src/users/models/user-tokens.entity';
 
 @Injectable()
 export class AuthService {
@@ -14,7 +14,6 @@ export class AuthService {
   ) {}
 
   async validateUser(username: string, pass: string): Promise<any> {
-
     const user = await this.usersService.findOne(username);
 
     if (user) {
@@ -27,9 +26,9 @@ export class AuthService {
   }
 
   async login(user: User) {
-
     const payload = { username: user.username, sub: user.id };
     const refreshToken = this.jwtService.sign({}, { expiresIn: '14d' });
+    const token = this.jwtService.sign(payload);
 
     const userTokenEntity = new UserTokens({
       userId: user.id,
@@ -39,7 +38,7 @@ export class AuthService {
     await userTokenEntity.save();
 
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: token,
       refresh_token: refreshToken,
     };
   }
@@ -52,14 +51,12 @@ export class AuthService {
     });
 
     if (!userToken) {
-      console.log('Pas de token en db');
       throw new UnauthorizedException();
     }
 
     const isValid = await this.jwtService.verifyAsync(userToken.refreshToken);
 
     if (!isValid) {
-      console.log('Le token nest pas valide');
       await userToken.destroy();
       throw new UnauthorizedException();
     }
@@ -71,12 +68,10 @@ export class AuthService {
     });
 
     if (!user) {
-      console.log('Pas dutilisateur')
       throw new UnauthorizedException();
     }
 
     const payload = { username: user.username, sub: user.id };
-
     return {
       access_token: this.jwtService.sign(payload),
     };

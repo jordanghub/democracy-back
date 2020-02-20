@@ -1,7 +1,16 @@
-import { Table, Column, Model, ForeignKey, DataType, BelongsTo, NotNull, AllowNull } from 'sequelize-typescript';
-import { ScoringLabel } from './scoring-label.entity';
-import { Message } from 'src/message/message.entity';
-import { User } from 'src/users/user.entity';
+import {
+  Table,
+  Column,
+  Model,
+  ForeignKey,
+  DataType,
+  BelongsTo,
+  NotNull,
+  AllowNull,
+} from 'sequelize-typescript';
+import { ScoringLabel } from './models/scoring-label.entity';
+import { Message } from 'src/message/models/message.entity';
+import { User } from 'src/users/models/user.entity';
 
 @Table({
   indexes: [
@@ -13,7 +22,6 @@ import { User } from 'src/users/user.entity';
   underscored: true,
 })
 export class Scoring extends Model {
-
   @AllowNull(false)
   @ForeignKey(() => ScoringLabel)
   @Column
@@ -37,5 +45,4 @@ export class Scoring extends Model {
 
   @BelongsTo(() => Message)
   message: Message;
-
 }

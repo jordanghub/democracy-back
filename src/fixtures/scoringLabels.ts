@@ -1,5 +1,5 @@
-import { Category } from 'src/categories/category.entity';
-import { ScoringLabel } from 'src/scoring/scoring-label.entity';
+import { Category } from 'src/categories/models/category.entity';
+import { ScoringLabel } from 'src/scoring/models/scoring-label.entity';
 
 const data = [
   /*

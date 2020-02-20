@@ -1,7 +1,14 @@
-import { Thread } from 'src/thread/thread.entity';
-import { Category } from 'src/categories/category.entity';
+import { Thread } from 'src/thread/models/thread.entity';
+import { Category } from 'src/categories/models/category.entity';
 
-import { BelongsTo, Table, Column, ForeignKey, Model, HasOne } from 'sequelize-typescript';
+import {
+  BelongsTo,
+  Table,
+  Column,
+  ForeignKey,
+  Model,
+  HasOne,
+} from 'sequelize-typescript';
 
 @Table({ underscored: true })
 export class ThreadCategory extends Model {
@@ -15,5 +22,4 @@ export class ThreadCategory extends Model {
 
   @BelongsTo(() => Category)
   category: Category;
-
 }

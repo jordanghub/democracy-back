@@ -5,8 +5,7 @@
  * @param {string} content Contenu dans lequel se trouve la sélection
  */
 
-const findOverlapStart = (strToFind, strToFindIn, content) => {
-
+export const findOverlapStart = (strToFind, strToFindIn, content) => {
   const strToFindMaxIdx = strToFind.length - 1;
   const strToFindInMaxIdx = strToFindIn.length - 1;
 
@@ -14,10 +13,13 @@ const findOverlapStart = (strToFind, strToFindIn, content) => {
     if (charIndex > strToFindInMaxIdx) {
       return false;
     }
-    const replacement = strToFind.slice(strToFindMaxIdx - charIndex) + strToFindIn.slice(charIndex + 1);
+    const replacement =
+      strToFind.slice(strToFindMaxIdx - charIndex) +
+      strToFindIn.slice(charIndex + 1);
+    //console.log(replacement);
     if (replacement === strToFindIn) {
-
-      const rest = strToFind.slice(0, strToFindMaxIdx - charIndex) + strToFindIn;
+      const rest =
+        strToFind.slice(0, strToFindMaxIdx - charIndex) + strToFindIn;
 
       if (content.includes(rest)) {
         return true;
@@ -34,21 +36,22 @@ const findOverlapStart = (strToFind, strToFindIn, content) => {
  * @param {string} content Contenu dans lequel se trouve la sélection
  */
 
-const findOverlapEnd = (strToFind, strToFindIn, content) => {
-
+export const findOverlapEnd = (strToFind, strToFindIn, content) => {
   const strToFindMaxIdx = strToFind.length - 1;
   const strToFindInMaxIdx = strToFindIn.length - 1;
 
-  for (let charIndex = 0; charIndex < strToFind.length; charIndex++) {
+  for (let charIndex = 0; charIndex <= strToFindMaxIdx; charIndex++) {
     if (charIndex > strToFindInMaxIdx) {
       return false;
     }
-    const replacement = strToFindIn.slice(0, (strToFindInMaxIdx + 1) - charIndex) + strToFind.slice(0, charIndex);
+    const replacement =
+      strToFindIn.slice(0, strToFindInMaxIdx - charIndex) +
+      strToFind.slice(0, charIndex + 1);
     if (replacement === strToFindIn) {
+      const rest =
+        strToFindIn.slice(0, strToFindInMaxIdx - charIndex) + strToFind;
 
-      const rest = strToFindIn.slice(0, (strToFindInMaxIdx + 1) - charIndex) + strToFind;
-
-      if(content.includes(rest)) {
+      if (content.includes(rest)) {
         return true;
       }
     }

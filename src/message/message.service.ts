@@ -1,16 +1,17 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { MESSAGE_REPOSITORY } from 'src/appConsts/sequelizeRepository';
-import { Message } from 'src/message/message.entity';
+import { Message } from 'src/message/models/message.entity';
 import { Scoring } from 'src/scoring/scoring.entity';
 import sequelize = require('sequelize');
-import { ScoringLabel } from 'src/scoring/scoring-label.entity';
-import { MessageSource } from './message-source.entity';
-import { User } from 'src/users/user.entity';
+import { ScoringLabel } from 'src/scoring/models/scoring-label.entity';
+import { MessageSource } from './models/message-source.entity';
+import { User } from 'src/users/models/user.entity';
 
 @Injectable()
 export class MessageService {
   constructor(
-    @Inject(MESSAGE_REPOSITORY) private readonly messageRepository: typeof Message,
+    @Inject(MESSAGE_REPOSITORY)
+    private readonly messageRepository: typeof Message,
   ) {}
 
   findOne(id) {
@@ -18,7 +19,7 @@ export class MessageService {
       where: {
         id,
       },
-      attributes: ['content', 'id', 'createdAt'],
+      attributes: ['content', 'id', 'createdAt', 'threadId'],
       include: [
         {
           model: MessageSource,
@@ -33,22 +34,6 @@ export class MessageService {
   }
 
   getMyVotes(userId, messageId) {
-    // return Scoring.findAll({
-    //   where: {
-    //     messageId,
-    //     userId,
-    //   },
-    //   // @ts-ignore
-    //   attributes: [
-    //     [sequelize.col('scoringCategory.name'), 'category'],
-    //   ],
-    //   include: [
-    //     {
-    //       model: ScoringLabel,
-    //       attributes: [],
-    //     },
-    //   ],
-    // });
     return Scoring.findAll({
       where: {
         userId,
@@ -69,10 +54,9 @@ export class MessageService {
   }
 
   async voteMessage(categories, userId, messageId) {
-
     // Vérifier si le message existe
 
-    const message =  await Message.findOne({
+    const message = await Message.findOne({
       where: {
         id: messageId,
       },
@@ -109,11 +93,9 @@ export class MessageService {
         // Si elle existe on met à jour la valeur
 
         if (scoringVal) {
-          console.log('------------------ Le vote existe déjà et va être remplacé');
           scoringVal.value = category.value;
           await scoringVal.save();
         } else {
-          console.log('------------------ Le vote n existe pas');
           // Sinon on créer l'entrée dans la base de donnée
           const newVote = new Scoring({
             scoringCategoryId: category.id,
@@ -138,10 +120,7 @@ export class MessageService {
           sequelize.fn('ROUND', sequelize.fn('AVG', sequelize.col('value'))),
           'average',
         ],
-        [
-          sequelize.fn('COUNT', sequelize.col('value')),
-          'voteCount',
-        ],
+        [sequelize.fn('COUNT', sequelize.col('value')), 'voteCount'],
       ],
       include: [
         {
@@ -150,8 +129,6 @@ export class MessageService {
         },
       ],
       group: ['scoring_category_id'],
-
     });
-    // hfjdklfhs
   }
 }

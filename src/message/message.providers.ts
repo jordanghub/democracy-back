@@ -1,4 +1,4 @@
-import { Message } from 'src/message/message.entity';
+import { Message } from 'src/message/models/message.entity';
 import { MESSAGE_REPOSITORY } from 'src/appConsts/sequelizeRepository';
 
 export const messageProviders = [

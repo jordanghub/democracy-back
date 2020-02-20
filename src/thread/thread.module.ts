@@ -3,19 +3,19 @@ import { ThreadController } from './thread.controller';
 import { DatabaseModule } from 'src/database/database.module';
 import { ThreadService } from './thread.service';
 import { threadProviders } from 'src/thread/thread.providers';
-import { MessageService } from 'src/message/message.service';
-import { messageProviders } from 'src/message/message.providers';
 import { WebSocketGatewayServer } from 'src/sockets/gateway';
+import { MessageModule } from 'src/message/message.module';
+// import { NotificationService } from 'src/notification/notification.service';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, MessageModule],
   controllers: [ThreadController],
   providers: [
     WebSocketGatewayServer,
+    // NotificationService, future notificaiton
     ThreadService,
-    MessageService,
     ...threadProviders,
-    ...messageProviders,
   ],
+  exports: [ThreadService],
 })
 export class ThreadModule {}

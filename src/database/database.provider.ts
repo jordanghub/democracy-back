@@ -1,16 +1,17 @@
 import { Sequelize } from 'sequelize-typescript';
-import { Thread } from 'src/thread/thread.entity';
-import { Message } from 'src/message/message.entity';
-import { Category } from 'src/categories/category.entity';
-import { ThreadCategory } from 'src/categories/thread-category.entity';
-import { User } from 'src/users/user.entity';
-import { ScoringLabel } from 'src/scoring/scoring-label.entity';
+import { Thread } from 'src/thread/models/thread.entity';
+import { Message } from 'src/message/models/message.entity';
+import { Category } from 'src/categories/models/category.entity';
+import { ThreadCategory } from 'src/categories/models/thread-category.entity';
+import { User } from 'src/users/models/user.entity';
+import { ScoringLabel } from 'src/scoring/models/scoring-label.entity';
 import { Scoring } from 'src/scoring/scoring.entity';
-import { MessageSource } from 'src/message/message-source.entity';
-import { UserTokens } from 'src/users/user-tokens';
-import { ThreadRef } from 'src/thread/thread-ref.entity';
-import { MessageRef } from 'src/message/message-ref.entity';
-import { Selection } from 'src/thread/selection.entity';
+import { MessageSource } from 'src/message/models/message-source.entity';
+import { UserTokens } from 'src/users/models/user-tokens.entity';
+import { MessageRef } from 'src/message/models/message-ref.entity';
+import { Selection } from 'src/thread/models/selection.entity';
+import { ThreadFollowers } from 'src/thread/models/thread-followers.entity';
+import { ThreadNotification } from 'src/notification/models/thread-notification.entity';
 
 const models = [
   Thread,
@@ -21,10 +22,11 @@ const models = [
   ScoringLabel,
   Scoring,
   MessageSource,
-  ThreadRef,
   MessageRef,
   Selection,
   UserTokens,
+  ThreadFollowers,
+  ThreadNotification,
 ];
 
 export const databaseProviders = [
@@ -38,9 +40,10 @@ export const databaseProviders = [
         username: 'root',
         password: 'coucou1.5',
         database: 'democracy',
+        logging: true,
       });
       sequelize.addModels(models);
-      // await sequelize.sync({ force: true });
+      await sequelize.sync();
       return sequelize;
     },
   },
