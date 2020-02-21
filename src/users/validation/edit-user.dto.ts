@@ -13,7 +13,7 @@ import { Transform } from 'class-transformer';
 export class EditUserDto {
   @ValidateIf(o => o.newPassword)
   @IsString()
-  @Transform(o => o.trim())
+  @Transform((v, data) => data.password.trim())
   @IsNotEmpty()
   @MinLength(6)
   @MaxLength(24)
@@ -21,7 +21,7 @@ export class EditUserDto {
 
   @ValidateIf(o => o.password)
   @IsString()
-  @Transform(o => o.trim())
+  @Transform((v, data) => data.newPassword.trim())
   @IsNotEmpty()
   @MinLength(6)
   @MaxLength(24)
@@ -29,7 +29,7 @@ export class EditUserDto {
 
   @IsOptional()
   @IsString()
-  @Transform(o => o.trim())
+  @Transform((v, data) => data.email.trim())
   @IsNotEmpty()
   @IsEmail()
   @Validate(EmailUnique)

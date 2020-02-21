@@ -17,14 +17,14 @@ import { MessageSourceType } from 'src/message/validation/MessageSource';
 
 export class CreateThreadDto {
   @IsString()
-  @Transform(o => o.trim())
+  @Transform((v, data) => data.title.trim())
   @IsNotEmpty()
   @MinLength(10)
   @MaxLength(255)
   title: string;
 
   @IsString()
-  @Transform(o => o.trim())
+  @Transform((v, data) => data.message.trim())
   @IsNotEmpty()
   @MinLength(10)
   message: string;
@@ -45,7 +45,7 @@ export class CreateThreadDto {
 
   @ValidateIf(o => o.refThreadId && o.refMessageId)
   @IsString()
-  @Transform(o => o.trim())
+  @Transform((v, data) => data.selectedText.trim())
   @IsNotEmpty()
   @MinLength(15)
   @MaxLength(100)

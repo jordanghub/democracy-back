@@ -10,7 +10,7 @@ import { Type, Transform } from 'class-transformer';
 import { MessageSourceType } from './MessageSource';
 export class MessageType {
   @IsString()
-  @Transform(o => o.trim())
+  @Transform((v, data) => data.content.trim())
   @MinLength(10)
   @IsNotEmpty()
   content: string;
