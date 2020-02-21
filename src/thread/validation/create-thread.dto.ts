@@ -1,6 +1,5 @@
 import {
   IsNotEmpty,
-  IsArray,
   ArrayNotEmpty,
   IsNumber,
   MinLength,
@@ -9,18 +8,23 @@ import {
   IsOptional,
   IsString,
   ValidateIf,
-  IsAlphanumeric,
+  IsInt,
+  Min,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 import { MessageSourceType } from 'src/message/validation/MessageSource';
 
 export class CreateThreadDto {
+  @IsString()
+  @Transform(o => o.trim())
   @IsNotEmpty()
   @MinLength(10)
   @MaxLength(255)
   title: string;
 
+  @IsString()
+  @Transform(o => o.trim())
   @IsNotEmpty()
   @MinLength(10)
   message: string;
@@ -41,15 +45,14 @@ export class CreateThreadDto {
 
   @ValidateIf(o => o.refThreadId && o.refMessageId)
   @IsString()
+  @Transform(o => o.trim())
+  @IsNotEmpty()
   @MinLength(15)
   @MaxLength(100)
   selectedText: string;
 
   @ValidateIf(o => o.refThreadId && o.selectedText)
-  @IsNumber()
+  @IsInt()
+  @Min(0)
   refMessageId: number;
-  constructor() {
-    console.log('title from class', this.title);
-    console.log('message from class', this.message);
-  }
 }
