@@ -15,6 +15,7 @@ import { createFakeScoring } from './fixtures/messageVotes';
 import { fakeThreadResponse } from './fixtures/threadMessages';
 import { classValidatorErrorFilter } from './utils/filterErrors';
 import { createRoles } from './fixtures/roles';
+import { Category } from './categories/models/category.entity';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -44,12 +45,20 @@ async function bootstrap() {
   );
   await app.listen(3000, '0.0.0.0');
 
-  // await createRoles();
-  // await createCategory();
-  // await createUsers();
-  // await createScoringLabels();
-  // await createThreads();
-  // await fakeThreadResponse();
-  // await createFakeScoring();
+  try {
+    const alreadyCreated = await Category.count();
+    if (alreadyCreated === 0) {
+      await createRoles();
+      await createCategory();
+      await createUsers();
+      await createScoringLabels();
+      await createThreads();
+      await fakeThreadResponse();
+      await createFakeScoring();
+    }
+  } catch (e) {
+    console.log(e);
+    console.log('erreur avec les fixtures');
+  }
 }
 bootstrap();
