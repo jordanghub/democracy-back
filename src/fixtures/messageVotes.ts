@@ -22,6 +22,7 @@ export const createFakeScoring = () => {
               const scoring = new Scoring({
                 userId: user.id,
                 messageId: message.id,
+                threadId: message.threadId,
                 scoringCategoryId: scoringLabel.id,
                 value: Math.floor(Math.random() * 101),
               });

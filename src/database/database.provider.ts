@@ -12,6 +12,9 @@ import { MessageRef } from 'src/message/models/message-ref.entity';
 import { Selection } from 'src/thread/models/selection.entity';
 import { ThreadFollowers } from 'src/thread/models/thread-followers.entity';
 import { ThreadNotification } from 'src/notification/models/thread-notification.entity';
+import { Role } from 'src/users/models/role.entity';
+import { UserRole } from 'src/users/models/user-roles.entity';
+import { ThreadLockedData } from 'src/thread/models/thread-lock-data.entity';
 
 const models = [
   Thread,
@@ -27,6 +30,9 @@ const models = [
   UserTokens,
   ThreadFollowers,
   ThreadNotification,
+  Role,
+  UserRole,
+  ThreadLockedData,
 ];
 
 export const databaseProviders = [
@@ -35,11 +41,11 @@ export const databaseProviders = [
     useFactory: async () => {
       const sequelize = new Sequelize({
         dialect: 'mysql',
-        host: 'localhost',
-        port: 3306,
-        username: 'root',
-        password: 'coucou1.5',
-        database: 'democracy',
+        host: process.env.MYSQL_HOST,
+        port: parseInt(process.env.MYSQL_PORT, 10),
+        username: process.env.MYSQL_USER,
+        password: process.env.MYSQL_PASSWORD,
+        database: process.env.MYSQL_DATABASE,
         logging: true,
       });
       sequelize.addModels(models);

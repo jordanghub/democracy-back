@@ -8,6 +8,7 @@ import {
 import { User } from 'src/users/models/user.entity';
 import { Scoring } from '../scoring.entity';
 import { Message } from 'src/message/models/message.entity';
+import { Thread } from 'src/thread/models/thread.entity';
 
 @Table({
   indexes: [
@@ -25,6 +26,10 @@ export class ThreadMessageScoring extends Model {
   @ForeignKey(() => Message)
   @Column
   messageId: number;
+
+  @ForeignKey(() => Thread)
+  @Column
+  threadId: number;
 
   @HasMany(() => Scoring)
   scoringValues: Scoring[];

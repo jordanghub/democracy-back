@@ -1,6 +1,8 @@
 import { User } from 'src/users/models/user.entity';
 import bcrypt from 'bcrypt';
 import { SALT_ROUNDS } from 'src/appConsts/bcrypt';
+import { Role } from 'src/users/models/role.entity';
+import { UserRole } from 'src/users/models/user-roles.entity';
 
 const data = [
   {
@@ -52,6 +54,11 @@ const data = [
 
 export const createUsers = () => {
   return new Promise(async (resolve, reject) => {
+    const role = await Role.findOne({
+      where: {
+        code: 'ROLE_USER',
+      },
+    });
     for (let userData = 0; userData < data.length; userData++) {
       const hashedPassword = await bcrypt.hash(
         data[userData].password,
@@ -62,6 +69,12 @@ export const createUsers = () => {
         password: hashedPassword,
       });
       await user.save();
+
+      const userRole = new UserRole({
+        userId: user.id,
+        roleId: role.id,
+      });
+      await userRole.save();
     }
     resolve();
   });

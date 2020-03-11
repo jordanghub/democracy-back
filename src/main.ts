@@ -14,6 +14,7 @@ import { createScoringLabels } from 'src/fixtures/scoringLabels';
 import { createFakeScoring } from './fixtures/messageVotes';
 import { fakeThreadResponse } from './fixtures/threadMessages';
 import { classValidatorErrorFilter } from './utils/filterErrors';
+import { createRoles } from './fixtures/roles';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -32,6 +33,7 @@ async function bootstrap() {
       windowMs: 1 * 60 * 1000,
       max: 200,
       skip: (req, res) => {
+        console.log(req.ip);
         if (req.ip === '192.168.1.22') {
           return true;
         }
@@ -42,6 +44,7 @@ async function bootstrap() {
   );
   await app.listen(3000, '0.0.0.0');
 
+  // await createRoles();
   // await createCategory();
   // await createUsers();
   // await createScoringLabels();

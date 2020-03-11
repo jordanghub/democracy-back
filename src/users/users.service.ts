@@ -8,6 +8,8 @@ import { User } from './models/user.entity';
 import { USER_REPOSITORY } from 'src/appConsts/sequelizeRepository';
 import bcrypt from 'bcrypt';
 import { SALT_ROUNDS } from 'src/appConsts/bcrypt';
+import { Role } from './models/role.entity';
+import { UserRole } from './models/user-roles.entity';
 
 @Injectable()
 export class UsersService {
@@ -29,9 +31,27 @@ export class UsersService {
         id,
       },
       attributes: ['id', 'username', 'avatarFileName', 'email'],
+      include: [
+        {
+          model: UserRole,
+          attributes: ['id'],
+
+          include: [
+            {
+              model: Role,
+              attributes: ['name', 'code'],
+            },
+          ],
+        },
+      ],
     });
   }
   async createOne({ username, password, email, avatarFileName }) {
+    const roleUser = await Role.findOne({
+      where: {
+        code: 'ROLE_USER',
+      },
+    });
     const hashPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
     const userOpts: any = {
@@ -44,8 +64,14 @@ export class UsersService {
       userOpts.avatarFileName = avatarFileName;
     }
     const user = new this.userRepository(userOpts);
+    await user.save();
 
-    return user.save();
+    const userRole = new UserRole({
+      userId: roleUser.id,
+      roleId: roleUser.id,
+    });
+    await userRole.save();
+    return user;
   }
 
   async editOne(id, { newPassword, password, email }, avatar = null) {
@@ -58,11 +84,8 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException();
     }
-    console.log(password, newPassword);
 
     if (newPassword && password) {
-      console.log(typeof newPassword);
-      console.log('bah oui bien sur');
       const passwordMatchCurrent = await bcrypt.compare(
         password,
         user.password,

@@ -11,6 +11,7 @@ import {
 import { ScoringLabel } from './models/scoring-label.entity';
 import { Message } from 'src/message/models/message.entity';
 import { User } from 'src/users/models/user.entity';
+import { Thread } from 'src/thread/models/thread.entity';
 
 @Table({
   indexes: [
@@ -31,6 +32,10 @@ export class Scoring extends Model {
   @ForeignKey(() => Message)
   @Column
   messageId: number;
+
+  @ForeignKey(() => Thread)
+  @Column
+  threadId: number;
 
   @AllowNull(false)
   @ForeignKey(() => User)

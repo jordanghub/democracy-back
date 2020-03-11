@@ -1,4 +1,10 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { THREAD_REPOSITORY } from 'src/appConsts/sequelizeRepository';
 import { Thread } from 'src/thread/models/thread.entity';
 import { Message } from 'src/message/models/message.entity';
@@ -10,24 +16,109 @@ import sequelize = require('sequelize');
 import { ScoringLabel } from 'src/scoring/models/scoring-label.entity';
 import { MessageSource } from 'src/message/models/message-source.entity';
 import { MessageService } from 'src/message/message.service';
-import { WebSocketGatewayServer } from 'src/sockets/gateway';
 import { Selection } from './models/selection.entity';
 import { MessageRef } from 'src/message/models/message-ref.entity';
 import { pagination } from 'src/utils/sequelize-pagination';
 import { findOverlapStart, findOverlapEnd } from 'src/utils/stringOverlap';
 import { ThreadFollowers } from './models/thread-followers.entity';
-
+import { PermissionService } from 'src/permissions/permissions.service';
+import { ThreadLockedData } from './models/thread-lock-data.entity';
 @Injectable()
 export class ThreadService {
   constructor(
     @Inject(THREAD_REPOSITORY) private readonly threadRepository: typeof Thread,
     @Inject(MessageService) private readonly messageService: MessageService,
+    @Inject(PermissionService)
+    private readonly permissionService: PermissionService,
   ) {}
 
-  async answerToThread(userId, threadId, content, sources) {
+  async lockThread(userId, threadId, lockData) {
+    const allowedRoles = ['ROLE_MODERATOR', 'ROLE_ADMIN'];
+
+    const thread = await Thread.findOne({
+      where: {
+        id: threadId,
+      },
+    });
+
+    if (!thread) {
+      throw new NotFoundException();
+    }
+
+    try {
+      const isAllowed = await this.permissionService.checkIfUserHasRoles(
+        userId,
+        allowedRoles,
+      );
+
+      if (!isAllowed) {
+        throw new ForbiddenException();
+      }
+
+      const alreadyLocked = await ThreadLockedData.findOne({
+        where: {
+          threadId,
+        },
+      });
+
+      if (alreadyLocked) {
+        await alreadyLocked.destroy();
+        return;
+      }
+
+      const data: any = {
+        userId,
+        threadId,
+      };
+
+      if (lockData.reason) {
+        data.reason = lockData.reason;
+      }
+
+      const lockedData = new ThreadLockedData(data);
+
+      await lockedData.save();
+    } catch (err) {
+      throw new ForbiddenException();
+    }
+  }
+
+  async answerToThread(
+    userId: number | string,
+    threadId: number | string,
+    content: string,
+    sources: any,
+  ) {
     const sequelize = this.threadRepository.sequelize;
 
     const transaction = await sequelize.transaction();
+
+    const thread = await Thread.findOne({
+      where: {
+        id: threadId,
+      },
+      include: [
+        {
+          model: ThreadLockedData,
+          attributes: ['id'],
+        },
+      ],
+    });
+
+    if (!thread) {
+      throw new NotFoundException();
+    }
+
+    if (!!thread.locked) {
+      const isAllowed = await this.permissionService.checkIfUserHasRoles(
+        userId,
+        ['ROLE_ADMIN', 'ROLE_MODERATOR'],
+      );
+
+      if (!isAllowed) {
+        throw new ForbiddenException();
+      }
+    }
 
     try {
       const messageEntity = new Message({
@@ -54,6 +145,7 @@ export class ThreadService {
       return message;
     } catch (err) {
       await transaction.rollback();
+      throw err;
     }
   }
 
@@ -106,13 +198,36 @@ export class ThreadService {
           required: true,
           attributes: ['id', 'username', 'avatarFileName'],
         },
+        {
+          model: Scoring,
+          attributes: [
+            [sequelize.col('scoringCategory.name'), 'category'],
+            [
+              sequelize.fn(
+                'ROUND',
+                sequelize.fn('AVG', sequelize.col('value')),
+              ),
+              'average',
+            ],
+            [sequelize.fn('COUNT', sequelize.col('value')), 'voteCount'],
+          ],
+          separate: true,
+          include: [
+            {
+              model: ScoringLabel,
+              attributes: [],
+            },
+          ],
+          // @ts-ignore
+          group: ['threadId', 'scoringCategory.id'],
+        },
       ],
     });
     return threads;
   }
 
   async findAllCurrentUserThreads(
-    userId,
+    userId: number | string,
     page: number = 1,
     pageSize: number = 5,
   ) {
@@ -146,12 +261,23 @@ export class ThreadService {
   }
 
   async findOne(id: string): Promise<Thread> {
-    return this.threadRepository.findOne<Thread>({
+    // @ts-ignore
+    return this.threadRepository.findOne<Thread | undefined>({
       where: {
         id,
       },
       attributes: ['id', 'title', 'slug', 'createdAt'],
       include: [
+        {
+          model: ThreadLockedData,
+          attributes: ['reason'],
+          include: [
+            {
+              model: User,
+              attributes: ['username', 'avatarFileName'],
+            },
+          ],
+        },
         {
           model: Message,
           attributes: ['id', 'content', 'createdAt'],
@@ -173,6 +299,29 @@ export class ThreadService {
                   attributes: ['selectedText'],
                 },
               ],
+            },
+            {
+              model: Scoring,
+              attributes: [
+                [sequelize.col('scoringCategory.name'), 'category'],
+                [
+                  sequelize.fn(
+                    'ROUND',
+                    sequelize.fn('AVG', sequelize.col('value')),
+                  ),
+                  'average',
+                ],
+                [sequelize.fn('COUNT', sequelize.col('value')), 'voteCount'],
+              ],
+              separate: true,
+              include: [
+                {
+                  model: ScoringLabel,
+                  attributes: [],
+                },
+              ],
+              // @ts-ignore
+              group: ['messageId', 'scoringCategory.id'],
             },
           ],
         },
@@ -202,6 +351,29 @@ export class ThreadService {
             },
           ],
         },
+        {
+          model: Scoring,
+          attributes: [
+            [sequelize.col('scoringCategory.name'), 'category'],
+            [
+              sequelize.fn(
+                'ROUND',
+                sequelize.fn('AVG', sequelize.col('value')),
+              ),
+              'average',
+            ],
+            [sequelize.fn('COUNT', sequelize.col('value')), 'voteCount'],
+          ],
+          separate: true,
+          include: [
+            {
+              model: ScoringLabel,
+              attributes: [],
+            },
+          ],
+          // @ts-ignore
+          group: ['threadId', 'scoringCategory.id'],
+        },
       ],
     });
   }
@@ -212,9 +384,9 @@ export class ThreadService {
     authorId: string,
     categories: number[],
     sources: any,
-    refThreadId,
-    refSelectedText,
-    refMessageId,
+    refThreadId: number,
+    refSelectedText: string,
+    refMessageId: number,
   ) {
     const sequelize = this.threadRepository.sequelize;
     const transaction = await sequelize.transaction();

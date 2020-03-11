@@ -21,6 +21,7 @@ import { formatThreadLatest } from 'src/utils/formatThread';
 import { MessageType } from 'src/message/validation/MessageType';
 import { getPaginationParams } from 'src/utils/sequelize-pagination';
 import { WebSocketGatewayServer } from 'src/sockets/gateway';
+import { ThreadLockDto } from './validation/thread-lock.dto';
 // import { NotificationService } from 'src/notification/notification.service';
 
 @Controller('threads')
@@ -30,6 +31,16 @@ export class ThreadController {
     // private readonly notificationService: NotificationService, future notification
     private readonly wsServer: WebSocketGatewayServer,
   ) {}
+
+  @Post('/:id/toggle-lock')
+  @UseGuards(AuthGuard('jwt'))
+  async lockThread(
+    @Param('id') id,
+    @Request() req,
+    @Body() lockData: ThreadLockDto,
+  ) {
+    await this.threadService.lockThread(req.user.userId, id, lockData);
+  }
 
   @Post('/:id/answer')
   @UseGuards(AuthGuard('jwt'))

@@ -5,10 +5,11 @@ import { ThreadService } from './thread.service';
 import { threadProviders } from 'src/thread/thread.providers';
 import { WebSocketGatewayServer } from 'src/sockets/gateway';
 import { MessageModule } from 'src/message/message.module';
+import { PermissionModule } from 'src/permissions/permission.module';
 // import { NotificationService } from 'src/notification/notification.service';
 
 @Module({
-  imports: [DatabaseModule, MessageModule],
+  imports: [DatabaseModule, MessageModule, PermissionModule],
   controllers: [ThreadController],
   providers: [
     WebSocketGatewayServer,

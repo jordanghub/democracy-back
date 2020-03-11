@@ -10,6 +10,7 @@ import {
 } from 'sequelize-typescript';
 import { Thread } from 'src/thread/models/thread.entity';
 import { Message } from 'src/message/models/message.entity';
+import { UserRole } from './user-roles.entity';
 
 @Table({ underscored: true })
 export class User extends Model {
@@ -33,4 +34,7 @@ export class User extends Model {
 
   @HasMany(() => Message)
   messages: Message[];
+
+  @HasMany(() => UserRole)
+  roles: UserRole[];
 }

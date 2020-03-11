@@ -27,5 +27,16 @@ export const formatThreadLatest = (thread: Thread) => {
   if (thread.originalSelection) {
     result.originalSelection = thread.originalSelection;
   }
+
+  if (thread.votes) {
+    result.votes = thread.votes;
+  }
+  result.banane = 'oui';
+
+  if (thread.locked) {
+    result.locked = thread.locked;
+  } else {
+    result.locked = null;
+  }
   return result;
 };

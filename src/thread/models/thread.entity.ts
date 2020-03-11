@@ -13,6 +13,8 @@ import { ThreadCategory } from 'src/categories/models/thread-category.entity';
 import { User } from 'src/users/models/user.entity';
 import { Selection } from './selection.entity';
 import { ThreadFollowers } from './thread-followers.entity';
+import { Scoring } from 'src/scoring/scoring.entity';
+import { ThreadLockedData } from './thread-lock-data.entity';
 
 @Table({ underscored: true })
 export class Thread extends Model {
@@ -29,11 +31,17 @@ export class Thread extends Model {
   @BelongsTo(() => User)
   author: User;
 
+  @HasMany(() => Scoring)
+  votes: Scoring[];
+
   @HasMany(() => Message)
   messages: Message[];
 
   @HasOne(() => Selection, 'threadReferenceToId')
   originalSelection: Selection;
+
+  @HasOne(() => ThreadLockedData, 'threadId')
+  locked: ThreadLockedData;
 
   @HasMany(() => ThreadCategory)
   categories: ThreadCategory[];

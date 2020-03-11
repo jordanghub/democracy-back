@@ -34,12 +34,6 @@ const data = [
   {
     name: 'Mensonge',
   },
-  {
-    name: 'Faits',
-  },
-  {
-    name: 'Objectivité',
-  },
 ];
 
 export const createScoringLabels = () => {

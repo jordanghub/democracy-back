@@ -101,6 +101,7 @@ export class MessageService {
             scoringCategoryId: category.id,
             messageId,
             userId,
+            threadId: message.threadId,
             value: category.value,
           });
           await newVote.save();

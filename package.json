@@ -9,7 +9,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "start:dev": "nest start --watch",
+    "start:dev": "env MYSQL_DATABASE=democracy MYSQL_USER=root MYSQL_PASSWORD=coucou1.5 MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306 nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "tslint -p tsconfig.json -c tslint.json",
