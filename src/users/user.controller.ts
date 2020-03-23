@@ -160,4 +160,13 @@ export class UserController {
       throw new HttpException('Something went wrong', 500);
     }
   }
+
+  @Post('/email-validation')
+  async emailValidattion(@Body() body) {
+    await this.userService.verifyEmail({ token: body.token });
+  }
+  @Post('/resend-validation-email')
+  async resendValidationEmail(@Body() body) {
+    await this.userService.resendValidationEmail(body.username, body.password);
+  }
 }

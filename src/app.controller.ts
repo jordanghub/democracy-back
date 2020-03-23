@@ -13,6 +13,7 @@ import {
   Body,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import sequelize from 'sequelize';
 import { AuthService } from './auth/auth.service';
 import { Response as IResponse, Request as IRequest } from 'express';
 import { Category } from './categories/models/category.entity';
@@ -21,10 +22,19 @@ import { Thread } from './thread/models/thread.entity';
 import { getPaginationParams, pagination } from './utils/sequelize-pagination';
 import { join } from 'path';
 import fs from 'fs';
+import { EmailService } from './email/email.service';
+import { ThreadCategory } from './categories/models/thread-category.entity';
+import { User } from './users/models/user.entity';
+import { Scoring } from './scoring/scoring.entity';
+import { ScoringLabel } from './scoring/models/scoring-label.entity';
+import { formatThreadLatest } from './utils/formatThread';
 
 @Controller()
 export class AppController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly emailService: EmailService,
+  ) {}
 
   @UseGuards(AuthGuard('local'))
   @Post('auth/login')
@@ -37,18 +47,85 @@ export class AppController {
     @Request() req,
     @Query('page') page,
     @Query('search') searchParam,
+    @Query('full') isFull,
   ) {
-    const result = await Thread.findAndCountAll({
-      attributes: ['id', 'title'],
-      ...pagination({ pageSize: 5, page, distinct: false }),
-      where: {
-        title: {
-          [Op.like]: `%${searchParam}%`,
-        },
-      },
-    });
+    let result = null;
 
-    const data = getPaginationParams(result.rows, result.count, page, 5);
+    if (!isFull) {
+      result = await Thread.findAndCountAll({
+        attributes: ['id', 'title', 'slug'],
+        ...pagination({ pageSize: 5, page, distinct: false }),
+        where: {
+          title: {
+            [Op.like]: `%${searchParam}%`,
+          },
+        },
+      });
+    } else {
+      result = await Thread.findAndCountAll({
+        ...pagination({ page, pageSize: 5, distinct: true }),
+        where: {
+          title: {
+            [Op.like]: `%${searchParam}%`,
+          },
+        },
+        order: [['createdAt', 'DESC']],
+        attributes: ['id', 'title', 'slug', 'createdAt'],
+        include: [
+          {
+            model: ThreadCategory,
+            as: 'categories',
+            attributes: ['createdAt'],
+            include: [
+              {
+                model: Category,
+                attributes: ['id', 'name'],
+              },
+            ],
+          },
+          {
+            model: User,
+            required: true,
+            attributes: ['id', 'username', 'avatarFileName'],
+          },
+          {
+            model: Scoring,
+            // @ts-ignore
+            attributes: [
+              // @ts-ignore
+              [sequelize.col('scoringCategory.name'), 'category'],
+              [
+                // @ts-ignore
+                sequelize.fn(
+                  'ROUND',
+                  // @ts-ignore
+                  sequelize.fn('AVG', sequelize.col('value')),
+                ),
+                'average',
+              ],
+              // @ts-ignore
+              [sequelize.fn('COUNT', sequelize.col('value')), 'voteCount'],
+            ],
+            separate: true,
+            include: [
+              {
+                model: ScoringLabel,
+                attributes: [],
+              },
+            ],
+            // @ts-ignore
+            group: ['threadId', 'scoringCategory.id'],
+          },
+        ],
+      });
+    }
+
+    const data = getPaginationParams(
+      result.rows.map(thread => formatThreadLatest(thread)),
+      result.count,
+      page,
+      5,
+    );
     return data;
   }
   @Post('auth/refresh')

@@ -1,3 +1,6 @@
+import urlSlug from 'url-slug';
+import uniqueSlug from 'unique-slug';
+
 import { Thread } from 'src/thread/models/thread.entity';
 import { Message } from 'src/message/models/message.entity';
 import { User } from 'src/users/models/user.entity';
@@ -39,7 +42,12 @@ export const createThreads = async () => {
         const category =
           categories[Math.floor(Math.random() * categories.length)];
 
+        const threadSlug = urlSlug(data[threadDataId].title, {
+          separator: '-',
+        });
+        const threadSlugRandomPart = uniqueSlug();
         let thread = new Thread({
+          slug: `${threadSlug}-${threadSlugRandomPart}`,
           title: data[threadDataId].title,
           userId: author.id,
         });

@@ -27,7 +27,7 @@ export class MessageService {
         },
         {
           model: User,
-          attributes: ['id', 'username'],
+          attributes: ['id', 'username', 'avatarFileName'],
         },
       ],
     });

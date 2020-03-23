@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import {
   Injectable,
   Inject,
@@ -5,6 +7,10 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
+
+import urlSlug from 'url-slug';
+import uniqueSlug from 'unique-slug';
+
 import { THREAD_REPOSITORY } from 'src/appConsts/sequelizeRepository';
 import { Thread } from 'src/thread/models/thread.entity';
 import { Message } from 'src/message/models/message.entity';
@@ -151,8 +157,8 @@ export class ThreadService {
 
   async findMessagesVoteAverage(id) {
     return Scoring.findAll({
-      // @ts-ignore
       attributes: [
+        // @ts-ignore
         [sequelize.col('scoringCategory.name'), 'category'],
         [
           sequelize.fn('ROUND', sequelize.fn('AVG', sequelize.col('value'))),
@@ -201,6 +207,7 @@ export class ThreadService {
         {
           model: Scoring,
           attributes: [
+            // @ts-ignore
             [sequelize.col('scoringCategory.name'), 'category'],
             [
               sequelize.fn(
@@ -264,9 +271,9 @@ export class ThreadService {
     // @ts-ignore
     return this.threadRepository.findOne<Thread | undefined>({
       where: {
-        id,
+        slug: id,
       },
-      attributes: ['id', 'title', 'slug', 'createdAt'],
+      attributes: ['id', 'title', 'slug', 'createdAt', 'userId'],
       include: [
         {
           model: ThreadLockedData,
@@ -297,6 +304,13 @@ export class ThreadService {
                 {
                   model: Selection,
                   attributes: ['selectedText'],
+                  include: [
+                    {
+                      model: Thread,
+                      as: 'referenceThread',
+                      attributes: ['id', 'slug'],
+                    },
+                  ],
                 },
               ],
             },
@@ -347,7 +361,7 @@ export class ThreadService {
             {
               model: Thread,
               as: 'thread',
-              attributes: ['title', 'id'],
+              attributes: ['title', 'id', 'slug'],
             },
           ],
         },
@@ -401,9 +415,15 @@ export class ThreadService {
       if (!authorEntity) {
         throw new Error('user not found');
       }
+
+      const threadSlug = urlSlug(title, {
+        separator: '-',
+      });
+      const threadSlugRandomPart = uniqueSlug();
       const thread = new this.threadRepository({
         title,
         userId: authorEntity.id,
+        slug: `${threadSlug}-${threadSlugRandomPart}`,
       });
 
       await thread.save({ transaction });
@@ -593,9 +613,10 @@ export class ThreadService {
 
       await transaction.commit();
 
-      return this.findOne(thread.id);
+      return this.findOne(thread.slug);
     } catch (err) {
       // Rollback if errors
+      console.log(err);
       await transaction.rollback();
       throw err;
     }

@@ -47,6 +47,10 @@ export const databaseProviders = [
         password: process.env.MYSQL_PASSWORD,
         database: process.env.MYSQL_DATABASE,
         logging: true,
+        define: {
+          collate: 'utf8mb4_unicode_ci',
+          charset: 'utf8mb4',
+        },
       });
       sequelize.addModels(models);
       await sequelize.sync();

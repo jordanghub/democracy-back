@@ -12,6 +12,7 @@ import { DatabaseModule } from './database/database.module';
 import { MessageModule } from './message/message.module';
 import { ScoringModule } from './scoring/scoring.module';
 import { WebSocketGatewayServer } from './sockets/gateway';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { WebSocketGatewayServer } from './sockets/gateway';
     CategoryModule,
     MessageModule,
     ScoringModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService, WebSocketGatewayServer],

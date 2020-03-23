@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  forwardRef,
+  Inject,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 
@@ -9,14 +14,22 @@ import { UserTokens } from 'src/users/models/user-tokens.entity';
 @Injectable()
 export class AuthService {
   constructor(
+    @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
 
-  async validateUser(username: string, pass: string): Promise<any> {
+  async validateUser(
+    username: string,
+    pass: string,
+    checkActivation: boolean = true,
+  ): Promise<any> {
     const user = await this.usersService.findOne(username);
 
     if (user) {
+      if (!user.isActivated && checkActivation) {
+        throw new UnauthorizedException({ type: 'not_activated' });
+      }
       const passwordMatch = await bcrypt.compare(pass, user.password);
       if (passwordMatch) {
         return user;

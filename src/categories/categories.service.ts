@@ -54,7 +54,7 @@ export class CategoryService {
         {
           model: User,
           required: true,
-          attributes: ['id', 'username'],
+          attributes: ['id', 'username', 'avatarFileName'],
         },
         {
           model: Scoring,
