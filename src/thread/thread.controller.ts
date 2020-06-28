@@ -20,16 +20,16 @@ import { CreateThreadDto } from './validation/create-thread.dto';
 import { formatThreadLatest } from 'src/utils/formatThread';
 import { MessageType } from 'src/message/validation/MessageType';
 import { getPaginationParams } from 'src/utils/sequelize-pagination';
-import { WebSocketGatewayServer } from 'src/sockets/gateway';
 import { ThreadLockDto } from './validation/thread-lock.dto';
+import { WebsocketModule } from 'src/sockets/socket.module';
+import { WebSocketGatewayServer } from 'src/sockets/gateway';
 // import { NotificationService } from 'src/notification/notification.service';
 
 @Controller('threads')
 export class ThreadController {
   constructor(
     @Inject(ThreadService) private readonly threadService: ThreadService,
-    // private readonly notificationService: NotificationService, future notification
-    private readonly wsServer: WebSocketGatewayServer,
+    private wsServer: WebSocketGatewayServer,
   ) {}
 
   @Post('/:id/toggle-lock')
@@ -57,6 +57,7 @@ export class ThreadController {
       messageDto.sources || [],
     );
     try {
+      console.log('aitsdfhsljkdh', this.wsServer.authClients);
       this.wsServer.server.emit(
         `newThreadMessage-${message.threadId}`,
         message,

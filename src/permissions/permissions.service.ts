@@ -1,10 +1,5 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { WebSocketGatewayServer } from 'src/sockets/gateway';
-import { Thread } from 'src/thread/models/thread.entity';
-import { Client } from 'socket.io';
-import { Message } from 'src/message/models/message.entity';
+import { Injectable } from '@nestjs/common';
 import { User } from 'src/users/models/user.entity';
-import { ThreadFollowers } from 'src/thread/models/thread-followers.entity';
 import { UserRole } from 'src/users/models/user-roles.entity';
 import { Role } from 'src/users/models/role.entity';
 
