@@ -27,13 +27,16 @@ export class AuthService {
     const user = await this.usersService.findOne(username);
 
     if (user) {
+      const passwordMatch = await bcrypt.compare(pass, user.password);
+      if (!passwordMatch) {
+        return null;
+      }
+
       if (!user.isActivated && checkActivation) {
         throw new UnauthorizedException({ type: 'not_activated' });
       }
-      const passwordMatch = await bcrypt.compare(pass, user.password);
-      if (passwordMatch) {
-        return user;
-      }
+
+      return user;
     }
     return null;
   }
