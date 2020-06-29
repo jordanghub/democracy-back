@@ -6,9 +6,9 @@ import {
   AllowNull,
   BelongsTo,
   Default,
+  DataType,
 } from 'sequelize-typescript';
 import { User } from 'src/users/models/user.entity';
-import { JSON } from 'sequelize/types';
 
 @Table({ underscored: true })
 export class Notification extends Model {
@@ -24,7 +24,7 @@ export class Notification extends Model {
   @Column
   type: string;
 
-  @Column
+  @Column(DataType.JSON)
   payload: JSON;
 
   @BelongsTo(() => User)

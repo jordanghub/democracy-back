@@ -15,6 +15,7 @@ import { ThreadNotification } from 'src/notification/models/thread-notification.
 import { Role } from 'src/users/models/role.entity';
 import { UserRole } from 'src/users/models/user-roles.entity';
 import { ThreadLockedData } from 'src/thread/models/thread-lock-data.entity';
+import { Notification } from 'src/notification/models/notification';
 
 const models = [
   Thread,
@@ -33,6 +34,7 @@ const models = [
   Role,
   UserRole,
   ThreadLockedData,
+  Notification,
 ];
 
 export const databaseProviders = [

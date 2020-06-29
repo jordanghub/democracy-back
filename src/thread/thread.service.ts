@@ -182,53 +182,63 @@ export class ThreadService {
     });
   }
 
-  async findAll(page: number = 1, pageSize: number = 5) {
+  async findAll(page: number = 1, pageSize: number = 5, userId = null) {
+    const includeRelations = [
+      {
+        model: ThreadCategory,
+        as: 'categories',
+        attributes: ['createdAt'],
+        include: [
+          {
+            model: Category,
+            attributes: ['id', 'name'],
+          },
+        ],
+      },
+
+      {
+        model: User,
+        required: true,
+        attributes: ['id', 'username', 'avatarFileName'],
+      },
+      {
+        model: Scoring,
+        attributes: [
+          // @ts-ignore
+          [sequelize.col('scoringCategory.name'), 'category'],
+          [
+            sequelize.fn('ROUND', sequelize.fn('AVG', sequelize.col('value'))),
+            'average',
+          ],
+          [sequelize.fn('COUNT', sequelize.col('value')), 'voteCount'],
+        ],
+        separate: true,
+        include: [
+          {
+            model: ScoringLabel,
+            attributes: [],
+          },
+        ],
+        // @ts-ignore
+        group: ['threadId', 'scoringCategory.id'],
+      },
+    ];
+
+    if (userId) {
+      includeRelations.push({
+        model: ThreadFollowers,
+        where: {
+          userId,
+        },
+        separate: true,
+      });
+    }
+
     const threads = this.threadRepository.findAndCountAll({
       ...pagination({ page, pageSize }),
       order: [['createdAt', 'DESC']],
       attributes: ['id', 'title', 'slug', 'createdAt'],
-      include: [
-        {
-          model: ThreadCategory,
-          as: 'categories',
-          attributes: ['createdAt'],
-          include: [
-            {
-              model: Category,
-              attributes: ['id', 'name'],
-            },
-          ],
-        },
-        {
-          model: User,
-          required: true,
-          attributes: ['id', 'username', 'avatarFileName'],
-        },
-        {
-          model: Scoring,
-          attributes: [
-            // @ts-ignore
-            [sequelize.col('scoringCategory.name'), 'category'],
-            [
-              sequelize.fn(
-                'ROUND',
-                sequelize.fn('AVG', sequelize.col('value')),
-              ),
-              'average',
-            ],
-            [sequelize.fn('COUNT', sequelize.col('value')), 'voteCount'],
-          ],
-          separate: true,
-          include: [
-            {
-              model: ScoringLabel,
-              attributes: [],
-            },
-          ],
-          // @ts-ignore
-          group: ['threadId', 'scoringCategory.id'],
-        },
-      ],
+      include: includeRelations,
     });
     return threads;
   }
@@ -621,33 +631,35 @@ export class ThreadService {
       throw err;
     }
   }
-  // async toggleThreadFollow(threadId, userId) {
-  //   const thread = await this.threadRepository.findOne({
-  //     where: {
-  //       id: threadId,
-  //     },
-  //   });
+  async toggleThreadFollow(threadId, userId) {
+    const thread = await this.threadRepository.findOne({
+      where: {
+        id: threadId,
+      },
+    });
 
-  //   if (!thread) {
-  //     throw new NotFoundException();
-  //   }
+    if (!thread) {
+      throw new NotFoundException();
+    }
 
-  //   const alreadyFollowing = await ThreadFollowers.findOne({
-  //     where: {
-  //       userId,
-  //     },
-  //   });
+    const alreadyFollowing = await ThreadFollowers.findOne({
+      where: {
+        userId,
+      },
+    });
 
-  //   if (alreadyFollowing) {
-  //     await alreadyFollowing.destroy();
-  //     return;
-  //   }
+    if (alreadyFollowing) {
+      await alreadyFollowing.destroy();
+      return false;
+    }
 
-  //   const newFollow = new ThreadFollowers({
-  //     threadId,
-  //     userId,
-  //   });
+    const newFollow = new ThreadFollowers({
+      threadId,
+      userId,
+    });
 
-  //   await newFollow.save();
-  // }
+    await newFollow.save();
+
+    return true;
+  }
 }

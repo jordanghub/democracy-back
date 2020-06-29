@@ -1,81 +1,103 @@
-// import { Injectable, Inject } from '@nestjs/common';
-// import { WebSocketGatewayServer } from 'src/sockets/gateway';
-// import { Thread } from 'src/thread/models/thread.entity';
-// import { ThreadNotification } from './models/thread-notification.entity';
-// import { Client } from 'socket.io';
-// import { Message } from 'src/message/models/message.entity';
-// import { User } from 'src/users/models/user.entity';
-// import { ThreadFollowers } from 'src/thread/models/thread-followers.entity';
+import { Injectable, Inject } from '@nestjs/common';
+import { WebSocketGatewayServer } from 'src/sockets/gateway';
+import { Thread } from 'src/thread/models/thread.entity';
+import { ThreadNotification } from './models/thread-notification.entity';
+import { Client } from 'socket.io';
+import { Message } from 'src/message/models/message.entity';
+import { User } from 'src/users/models/user.entity';
+import { ThreadFollowers } from 'src/thread/models/thread-followers.entity';
+import { Notification } from './models/notification';
+import { NotificationModule } from './notification.module';
 
-// @Injectable()
-// export class NotificationService {
-//   constructor(
-//     @Inject(WebSocketGatewayServer)
-//     private readonly wsServer: WebSocketGatewayServer,
-//   ) {}
+interface IThreadMessageNotification {
+  type: string;
+  userId: number;
+  payload: IThreadMessageNotificationPayload;
+}
 
-//   async threadMessageNotification(message: Message) {
-//     if (!message) {
-//       return;
-//     }
-//     const thread = await Thread.findOne({
-//       where: {
-//         id: message.threadId,
-//       },
-//       include: [
-//         {
-//           model: User,
-//           attributes: ['username'],
-//         },
-//         {
-//           model: ThreadFollowers,
-//           attributes: ['threadId', 'userId'],
-//         },
-//       ],
-//     });
+interface IThreadMessageNotificationPayload {
+  threadId: number;
+  authorName: string;
+  authorThumbnail: string;
+  threadSlug: string;
+  threadTitle: string;
+  messageId: number;
+}
 
-//     if (!thread) {
-//       return;
-//     }
+@Injectable()
+export class NotificationService {
+  constructor(
+    @Inject(WebSocketGatewayServer)
+    private readonly wsServer: WebSocketGatewayServer,
+  ) {}
 
-//     const entities = [];
+  async threadMessageNotification(message: Message) {
+    if (!message) {
+      return;
+    }
 
-//     thread.followers.forEach(follower => {
-//       if (follower.userId !== message.author.id) {
-//         const notificationEntity = {
-//           threadId: thread.id,
-//           userId: follower.userId,
-//         };
-//         entities.push(notificationEntity);
+    const thread = await Thread.findOne({
+      where: {
+        id: message.threadId,
+      },
+      include: [
+        {
+          model: User,
+          attributes: ['username', 'avatarFileName'],
+        },
+        {
+          model: ThreadFollowers,
+          attributes: ['threadId', 'userId'],
+        },
+      ],
+    });
 
-//         try {
-//           this.pushMessageThreadNotification(thread, message, follower.userId);
-//         } catch (err) {
-//           console.log(err);
-//         }
-//       }
-//     });
-//     await ThreadNotification.bulkCreate(entities);
-//   }
+    if (!thread) {
+      return;
+    }
 
-//   pushMessageThreadNotification(thread: Thread, message: Message, userId) {
-//     const data = {
-//       type: 'NEW_THREAD_MESSAGE',
-//       payload: {
-//         title: thread.title,
-//         author: thread.author,
-//         messagePreview: message.content.slice(0, 20),
-//       },
-//     };
+    const entities = [];
 
-//     const clients = WebSocketGatewayServer.authClients.filter(
-//       authClient => authClient.userId === userId,
-//     );
+    const notificationPayload: IThreadMessageNotificationPayload = {
+      threadId: thread.id,
+      authorName: message.author.username,
+      authorThumbnail: message.author.avatarFileName,
+      threadSlug: thread.slug,
+      threadTitle: thread.title,
+      messageId: message.id,
+    };
 
-//     if (Array.isArray(clients) && clients.length > 0) {
-//       for (const client of clients) {
-//         this.wsServer.server.to(client.clientId).emit('notifications', data);
-//       }
-//     }
-//   }
-// }
+    thread.followers.forEach(follower => {
+      if (follower.userId !== message.author.id) {
+        const notification = {
+          userId: follower.userId,
+          type: 'threadMessage',
+          payload: notificationPayload,
+        };
+        entities.push(notification);
+
+        try {
+          this.pushMessageThreadNotification(notification);
+        } catch (err) {
+          console.log(err);
+        }
+      }
+    });
+
+    await Notification.bulkCreate(entities);
+  }
+
+  pushMessageThreadNotification(notification: IThreadMessageNotification) {
+    const clients = this.wsServer.authClients.filter(
+      authClient => authClient.userId === notification.userId,
+    );
+
+    if (Array.isArray(clients) && clients.length > 0) {
+      for (const client of clients) {
+        this.wsServer.server
+          .to(client.clientId)
+          .emit('notifications', notification);
+      }
+    }
+  }
+}

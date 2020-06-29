@@ -27,8 +27,12 @@ import { extname } from 'path';
 import { EditUserDto } from './validation/edit-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ThreadService } from 'src/thread/thread.service';
-import { getPaginationParams } from 'src/utils/sequelize-pagination';
+import {
+  getPaginationParams,
+  pagination,
+} from 'src/utils/sequelize-pagination';
 import { formatThreadLatest } from 'src/utils/formatThread';
+import { Notification } from 'src/notification/models/notification';
 
 const avatarFilter = (req, file, cb) => {
   if (file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
@@ -64,6 +68,7 @@ export class UserController {
   @Get('/me')
   @UseGuards(AuthGuard('jwt'))
   async getUserData(@Req() req) {
+    console.log('user from request', req.user);
     const user = await this.userService.findOneById(req.user.userId);
 
     if (!user) {
@@ -159,6 +164,23 @@ export class UserController {
     } catch (err) {
       throw new HttpException('Something went wrong', 500);
     }
+  }
+
+  @Get('/me/notifications')
+  @UseGuards(AuthGuard('jwt'))
+  async getNotifications(@Req() req) {
+    const page = 1;
+    const pageSize = 5;
+    const result = await Notification.findAndCountAll({
+      ...pagination({ page, pageSize, distinct: false }),
+      where: {
+        userId: req.user.userId,
+      },
+      order: [['createdAt', 'DESC']],
+    });
+
+    const data = getPaginationParams(result.rows, result.count, page);
+    return data;
   }
 
   @Post('/email-validation')

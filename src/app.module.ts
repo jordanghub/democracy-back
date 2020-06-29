@@ -13,6 +13,7 @@ import { MessageModule } from './message/message.module';
 import { ScoringModule } from './scoring/scoring.module';
 import { EmailModule } from './email/email.module';
 import { WebsocketModule } from './sockets/socket.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { WebsocketModule } from './sockets/socket.module';
     ScoringModule,
     EmailModule,
     WebsocketModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

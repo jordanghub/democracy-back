@@ -21,16 +21,24 @@ import { formatThreadLatest } from 'src/utils/formatThread';
 import { MessageType } from 'src/message/validation/MessageType';
 import { getPaginationParams } from 'src/utils/sequelize-pagination';
 import { ThreadLockDto } from './validation/thread-lock.dto';
-import { WebsocketModule } from 'src/sockets/socket.module';
 import { WebSocketGatewayServer } from 'src/sockets/gateway';
-// import { NotificationService } from 'src/notification/notification.service';
+import { AnonymousStrategy } from 'src/auth/AnonymousPassportStrategy';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Controller('threads')
 export class ThreadController {
   constructor(
     @Inject(ThreadService) private readonly threadService: ThreadService,
     private wsServer: WebSocketGatewayServer,
+    private readonly notificationService: NotificationService,
   ) {}
+
+  /**
+   * Lock a thread (admin only)
+   * @param id
+   * @param req
+   * @param lockData
+   */
 
   @Post('/:id/toggle-lock')
   @UseGuards(AuthGuard('jwt'))
@@ -41,6 +49,13 @@ export class ThreadController {
   ) {
     await this.threadService.lockThread(req.user.userId, id, lockData);
   }
+
+  /**
+   * Reply to a thread
+   * @param id
+   * @param req
+   * @param messageDto
+   */
 
   @Post('/:id/answer')
   @UseGuards(AuthGuard('jwt'))
@@ -57,7 +72,6 @@ export class ThreadController {
       messageDto.sources || [],
     );
     try {
-      console.log('aitsdfhsljkdh', this.wsServer.authClients);
       this.wsServer.server.emit(
         `newThreadMessage-${message.threadId}`,
         message,
@@ -66,14 +80,20 @@ export class ThreadController {
 
     // Future notification service
 
-    // try {
-    //   if (message) {
-    //     this.notificationService.threadMessageNotification(message);
-    //   }
-    // } catch (err) {}
+    try {
+      if (message) {
+        console.log('il y a bien un message');
+        this.notificationService.threadMessageNotification(message);
+      }
+    } catch (err) {}
 
     return message;
   }
+
+  /**
+   * Get the thread votes
+   * @param id
+   */
 
   @Get('/:id/votes')
   async getThreadVotesAverage(@Param('id') id) {
@@ -86,14 +106,28 @@ export class ThreadController {
     return votes;
   }
 
-  // Future notification
-  // @Post('/:id/toggle-follow')
-  // @UseGuards(AuthGuard('jwt'))
-  // async followThread(@Request() req, @Param('id') id) {
-  //   await this.threadService.toggleThreadFollow(id, req.user.userId);
+  /**
+   * Follow or unfollow a thread (notifications)
+   * @param req
+   * @param id
+   */
+  @Post('/:id/toggle-follow')
+  @UseGuards(AuthGuard('jwt'))
+  async followThread(@Request() req, @Param('id') id) {
+    const result = await this.threadService.toggleThreadFollow(
+      id,
+      req.user.userId,
+    );
 
-  //   return {};
-  // }
+    return {
+      status: result,
+    };
+  }
+
+  /**
+   * Get a single thread
+   * @param id
+   */
 
   @Get('/:id')
   async getOne(@Param('id') id) {
@@ -104,9 +138,21 @@ export class ThreadController {
     }
     return formatThreadLatest(thread);
   }
+
+  /**
+   * Get all threads with pagination
+   * @param req
+   * @param page
+   */
+  @UseGuards(AuthGuard(['jwt', 'anonymous']))
   @Get()
   async getAllThreads(@Request() req, @Query('page') page) {
-    const result = await this.threadService.findAll(page);
+    console.log(req.user);
+    const result = await this.threadService.findAll(
+      page,
+      5,
+      req.user?.userId || null,
+    );
 
     const threads = result.rows.map(thread => formatThreadLatest(thread));
 
@@ -121,6 +167,10 @@ export class ThreadController {
       disableErrorMessages: true,
     }),
   )
+
+  /**
+   * Create a thread
+   */
   @Post()
   async createNewThread(
     @Request() req,
