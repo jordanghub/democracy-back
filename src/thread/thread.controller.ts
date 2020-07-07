@@ -82,7 +82,6 @@ export class ThreadController {
 
     try {
       if (message) {
-        console.log('il y a bien un message');
         this.notificationService.threadMessageNotification(message);
       }
     } catch (err) {}
@@ -147,7 +146,6 @@ export class ThreadController {
   @UseGuards(AuthGuard(['jwt', 'anonymous']))
   @Get()
   async getAllThreads(@Request() req, @Query('page') page) {
-    console.log(req.user);
     const result = await this.threadService.findAll(
       page,
       5,

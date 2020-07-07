@@ -16,6 +16,7 @@ import {
   NotFoundException,
   Inject,
   Query,
+  Put,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
@@ -169,7 +170,21 @@ export class UserController {
   @Get('/me/notifications')
   @UseGuards(AuthGuard('jwt'))
   async getNotifications(@Req() req) {
-    const page = 1;
+    const { count, page } = req.query;
+
+    if (count) {
+      const notificationCount = await Notification.count({
+        where: {
+          userId: req.user.userId,
+          active: true,
+        },
+      });
+
+      return {
+        activeNotifications: notificationCount,
+      };
+    }
+
     const pageSize = 5;
     const result = await Notification.findAndCountAll({
       ...pagination({ page, pageSize, distinct: false }),
@@ -181,6 +196,22 @@ export class UserController {
 
     const data = getPaginationParams(result.rows, result.count, page);
     return data;
+  }
+
+  @Put('/me/notifications')
+  @UseGuards(AuthGuard('jwt'))
+  async setNotificationsAsSeen(@Req() req) {
+    await Notification.update(
+      {
+        active: false,
+      },
+      {
+        where: {
+          userId: req.user.userId,
+          active: true,
+        },
+      },
+    );
   }
 
   @Post('/email-validation')

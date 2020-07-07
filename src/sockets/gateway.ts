@@ -41,14 +41,6 @@ export class WebSocketGatewayServer
     this.jwtService = jwtService;
   }
 
-  testMachin(clientId: string) {
-    this.server.to(clientId).emit('notifications', 'coucou');
-
-    // setTimeout(() => {
-    //   this.testMachin(clientId);
-    // }, 2000);
-  }
-
   /**
    * Verify the token and add the user to the authenticated list
    * @param client Socket
@@ -89,9 +81,6 @@ export class WebSocketGatewayServer
         userId,
         clientId,
       });
-      setTimeout(() => {
-        this.testMachin(clientId);
-      }, 2000);
     }
   }
 
