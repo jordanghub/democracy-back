@@ -14,6 +14,7 @@ import { ScoringModule } from './scoring/scoring.module';
 import { EmailModule } from './email/email.module';
 import { WebsocketModule } from './sockets/socket.module';
 import { NotificationModule } from './notification/notification.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { NotificationModule } from './notification/notification.module';
     EmailModule,
     WebsocketModule,
     NotificationModule,
+    ConfigModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService],

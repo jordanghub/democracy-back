@@ -7,14 +7,16 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
 import { JwtStrategy } from './jwt.strategy';
 import { AnonymousStrategy } from './AnonymousPassportStrategy';
+import { JWT_PRIVATE_KEY, JWT_PUBLIC_KEY } from 'src/appConsts/jwt';
 
 @Module({
   imports: [
     forwardRef(() => UsersModule),
     PassportModule,
     JwtModule.register({
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: '3600s' },
+      publicKey: JWT_PUBLIC_KEY,
+      privateKey: JWT_PRIVATE_KEY,
+      signOptions: { expiresIn: '3600s', algorithm: 'RS256' },
     }),
   ],
   providers: [AuthService, LocalStrategy, AnonymousStrategy, JwtStrategy],

@@ -116,6 +116,8 @@ export class UsersService {
       username,
       password: hashPassword,
       email,
+      // email validation is disabled
+      isActivated: true,
     };
 
     if (avatarFileName) {
@@ -135,7 +137,7 @@ export class UsersService {
 
     await userRole.save();
 
-    await this.emailService.registerConfirmationEmail(user);
+    // await this.emailService.registerConfirmationEmail(user);
 
     return user;
   }

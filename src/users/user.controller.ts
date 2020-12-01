@@ -69,7 +69,6 @@ export class UserController {
   @Get('/me')
   @UseGuards(AuthGuard('jwt'))
   async getUserData(@Req() req) {
-    console.log('user from request', req.user);
     const user = await this.userService.findOneById(req.user.userId);
 
     if (!user) {

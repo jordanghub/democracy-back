@@ -11,6 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { Logger, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from 'src/auth/constants';
+import { JWT_PRIVATE_KEY, JWT_PUBLIC_KEY } from 'src/appConsts/jwt';
 
 interface ILoginWsPayload {
   token: string;
@@ -33,7 +34,11 @@ export class WebSocketGatewayServer
 
   constructor() {
     const jwtService = new JwtService({
-      secret: jwtConstants.secret,
+      publicKey: JWT_PUBLIC_KEY,
+      privateKey: JWT_PRIVATE_KEY,
+      signOptions: {
+        algorithm: 'RS256',
+      },
       verifyOptions: {
         ignoreExpiration: false,
       },

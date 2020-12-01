@@ -5,6 +5,7 @@ import {
   ForeignKey,
   Unique,
   AllowNull,
+  DataType,
 } from 'sequelize-typescript';
 import { User } from './user.entity';
 
@@ -12,7 +13,7 @@ import { User } from './user.entity';
 export class UserTokens extends Model {
   @AllowNull(false)
   @Unique
-  @Column
+  @Column(DataType.TEXT)
   refreshToken: string;
 
   @AllowNull(false)

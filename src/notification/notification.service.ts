@@ -1,13 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { WebSocketGatewayServer } from 'src/sockets/gateway';
 import { Thread } from 'src/thread/models/thread.entity';
-import { ThreadNotification } from './models/thread-notification.entity';
-import { Client } from 'socket.io';
 import { Message } from 'src/message/models/message.entity';
 import { User } from 'src/users/models/user.entity';
 import { ThreadFollowers } from 'src/thread/models/thread-followers.entity';
 import { Notification } from './models/notification';
-import { NotificationModule } from './notification.module';
 
 interface IThreadMessageNotification {
   type: string;
